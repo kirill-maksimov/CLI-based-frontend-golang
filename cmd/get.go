@@ -9,16 +9,10 @@ import (
 	"encoding/json"
 )
 
-// getCmd represents the get command
 var getCmd = &cobra.Command{
 	Use:   "get",
 	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Long: "A tool that helps you to receive your todos",
 	Run: func(cmd *cobra.Command, args []string) {
 		getTodos()
 	},
@@ -28,34 +22,46 @@ func init() {
 	rootCmd.AddCommand(getCmd)
 }
 
+func getTasks () {
+    resp, err := http.Get("http://localhost:8080/api/todos")
+      if err != nil {
+        log.Fatalln(err)
+      }
+      defer resp.Body.Close()
+
+      body, err := ioutil.ReadAll(resp.Body)
+      if err != nil {
+        log.Fatalln(err)
+      }
+
+      log.Println(string(body))
+}
+
 type Todos struct {
-	ID string `json:"id"`
-	Title string `json:"title"`
-	Completed bool `json:"completed"`
+    ID string `json:"id"`
+    Title string `json:"title"`
     IsImportant bool `json:"isImportant"`
+    Completed bool `json:"completed"`
 }
 
 func getTodos () {
-	url := "localhost:8080/api/todos"
+	url := "http://localhost:8080/api/todos"
 	responseBytes := getTodosData(url)
-	data := Todos{}
+	var data []Todos
 
 	if err := json.Unmarshal(responseBytes, &data); err != nil {
 	    log.Printf("Something went wrong", err)
 	}
 
-	fmt.Println(string(title.Title))
+	fmt.Println(data)
 }
 
 func getTodosData (BaseAPI string) []byte {
-    http.NewRequest(
+    request, err := http.NewRequest(
         http.MethodGet,
-        baseAPI,
+        BaseAPI,
         nil,
     )
-    if err != nil {
-        log.Printf("Can not make the request")
-    }
 
     request.Header.Add("Accept", "application/json")
 
